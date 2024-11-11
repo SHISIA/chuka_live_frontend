@@ -12,7 +12,9 @@ const config: Config = {
         background: "var(--background)",
         foreground: "var(--foreground)",
         goldenYellow: '#F2BB47',
-        textThemeBrown:"#653A3A"
+        textThemeBrown:"#653A3A",
+        chukaLiveLight:"#f5f5f5",
+        chukaLiveBlack:"#334155"
       },
     },
   },

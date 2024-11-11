@@ -41,36 +41,37 @@ const Post: React.FC<PostProps> = ({ username, avatar, course, courseId, bookmar
         : description;
 
 
-        const [isPlaying, setIsPlaying] = useState(false);
-        const audioRef = useRef<HTMLAudioElement | null>(null);
-      
-        useEffect(() => {
-          const audio = audioRef.current;
-          if (!audio) return;
-      
-          // Event listeners to track play/pause status
-          const handlePlay = () => setIsPlaying(true);
-          const handlePause = () => setIsPlaying(false);
-      
-          audio.addEventListener('play', handlePlay);
-          audio.addEventListener('pause', handlePause);
-          audio.addEventListener('ended', handlePause);
-      
-          // Clean up event listeners on component unmount
-          return () => {
+    const [isPlaying, setIsPlaying] = useState(false);
+    const audioRef = useRef<HTMLAudioElement | null>(null);
+
+    useEffect(() => {
+        const audio = audioRef.current;
+        if (!audio) return;
+
+        // Event listeners to track play/pause status
+        const handlePlay = () => setIsPlaying(true);
+        const handlePause = () => setIsPlaying(false);
+
+        audio.addEventListener('play', handlePlay);
+        audio.addEventListener('pause', handlePause);
+        audio.addEventListener('ended', handlePause);
+
+        // Clean up event listeners on component unmount
+        return () => {
             audio.removeEventListener('play', handlePlay);
             audio.removeEventListener('pause', handlePause);
             audio.removeEventListener('ended', handlePause);
-          };
-        }, []);
+        };
+    }, []);
 
 
     return (
         <>
 
             {/* post item */}
-            <div className="relative m-auto flex w-11/12 max-w-sm flex-col overflow-hidden rounded-lg border border-gray-100 bg-white shadow-md">
-                <div className="m-2 grid grid-cols-2 justify-between mx-4">
+            <div className="relative m-auto flex flex-col overflow-hidden rounded-lg border border-gray-100 bg-white shadow-md max-w-md">
+                {/* Top Avatar area */}
+                <div className="post m-2 grid grid-cols-2 justify-between mx-4">
                     <div>
                         <Avatar src={avatar}></Avatar>
                         <div className="grid grid-cols-1 place-items-start">
@@ -138,17 +139,17 @@ const Post: React.FC<PostProps> = ({ username, avatar, course, courseId, bookmar
 
                         {isAudioUrl && (
                             <div className="audio-card w-full flex flex-col items-center gap-5">
-                            <CardMedia
-                              component="img"
-                              src={isPlaying ? "../images/audio_wave.gif" : "../images/audio.png"}
-                              alt="Audio Waveform"
-                              loading="lazy"
-                              sx={{ height: "80px", width: "100px" }}
-                            />
-                            <audio ref={audioRef} controls src={audioUrl} id="audio-player">
-                              Your browser does not support the audio element.
-                            </audio>
-                          </div>
+                                <CardMedia
+                                    component="img"
+                                    src={isPlaying ? "../images/audio_wave.gif" : "../images/audio.png"}
+                                    alt="Audio Waveform"
+                                    loading="lazy"
+                                    sx={{ height: "80px", width: "100px" }}
+                                />
+                                <audio ref={audioRef} controls src={audioUrl} id="audio-player">
+                                    Your browser does not support the audio element.
+                                </audio>
+                            </div>
                         )}
 
                     </a>
@@ -156,18 +157,20 @@ const Post: React.FC<PostProps> = ({ username, avatar, course, courseId, bookmar
                 <p className="text-gray-500 text-sm italic text-start mx-4 mt-4">Posted {timestamp}</p>
 
                 <div className="mt-0 px-4 pb-2 flex items-center justify-between ">
-                    <div className="flex items-center gap-5">
-                        <div>
+                    <div className="flex items-center gap-0">
+                        <IconButton>
                             <FavoriteIcon fontSize="medium" sx={{ fill: "#FFFFFF00", stroke: "grey", cursor: "pointer" }} />
-                        </div>
+                        </IconButton>
                         <IconButton onClick={() => setIsCommenting(!isCommenting)}>
                             <img src="../images/chat.png" className="w-6" />
                         </IconButton>
-                        <div>
+                        <IconButton>
                             <ShareIcon sx={{ fill: "grey" }} />
-                        </div>
+                        </IconButton>
                     </div>
-                    <TurnedInNotIcon />
+                    <IconButton>
+                        <TurnedInNotIcon />
+                    </IconButton>
                 </div>
                 {/* this is the comments holder */}
                 <div>

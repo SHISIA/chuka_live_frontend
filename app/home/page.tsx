@@ -1,15 +1,20 @@
 "use client";
-import { Avatar, IconButton, Typography } from "@mui/material";
-import FavoriteIcon from '@mui/icons-material/Favorite';
-import ShareIcon from '@mui/icons-material/Share';
-import TurnedInNotIcon from '@mui/icons-material/TurnedInNot';
+import { Avatar, Typography } from "@mui/material";
 // import Comment from "../components/Comment";
-import CommentPreview from "../components/CommentPreview";
-import { useState } from "react";
 import Post from "../components/Post";
-
+import PollBox from "../components/PollBox";
+import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
+import { useEffect, useRef, useState, RefObject } from "react";
+import PostAddOutlinedIcon from '@mui/icons-material/PostAddOutlined';
+import HowToVoteOutlined from '@mui/icons-material/HowToVoteOutlined';
+import MicNoneOutlinedIcon from '@mui/icons-material/MicNoneOutlined';
+import UserProfileItem from "../components/BookmarkedPostItem";
+import BookmarkedPostItem from "../components/BookmarkedPostItem";
+import ToastNotification from "../components/ToastNotificationItem";
 
 export default function Home() {
+    const [isPostOpen, setIsPostOpen] = useState(false);
+    const [isMenuOpen, setIsMenuOpen] = useState(false)
     const posts = [
         {
             username: "Shisia James",
@@ -53,8 +58,49 @@ export default function Home() {
         }
     ];
 
+    const wrapperRef = useRef<HTMLDivElement>(null);
+    useOutsideAlerter(wrapperRef);
+
+    const toggleMenu = () => {
+        setIsMenuOpen(!isMenuOpen);
+        setIsPostOpen(false); // Close post popup when menu is opened
+    };
+
+    const togglePost = () => {
+        setIsPostOpen(!isPostOpen);
+        setIsMenuOpen(false); // Close menu popup when post is opened
+    };
+
+
+    /**
+       * Hook that closes popups if clicked outside of the passed refs
+       */
+    function useOutsideAlerter(...refs: RefObject<HTMLDivElement>[]) {
+        useEffect(() => {
+            function handleClickOutside(event: MouseEvent) {
+                // Close if clicked outside both menu and post popups
+                if (
+                    refs.every(ref => ref.current && !ref.current.contains(event.target as Node))
+                ) {
+                    setIsMenuOpen(false);
+                    setIsPostOpen(false);
+                }
+            }
+
+            // Bind the event listener
+            document.addEventListener("mousedown", handleClickOutside);
+            return () => {
+                // Unbind the event listener on clean up
+                document.removeEventListener("mousedown", handleClickOutside);
+            };
+        }, [refs]);
+    }
+
+    const question = "Do you love the Lord your God with all your heart, soul, and spirit?";
+    const answers = ["Yes, with all my heart!", "Sometimes", "Not really", "Unsure"];
+
     return (
-        <div className="max-w-7xl p-0 mx-auto text-center items-center content-center h-full border isolate " style={{ backgroundColor: "#F5F5F5", borderColor: "#f5f5f5" }}>
+        <div className="max-w-7xl p-0 mx-auto text-center flex flex-col items-center content-center h-full border isolate " style={{ backgroundColor: "#F5F5F5", borderColor: "#f5f5f5" }}>
             {/* search bar::top with account avatar and other menus */}
             <div className="bg-white flex flex-row justify-center items-center py-2 px-2  max-w-7xl fixed top-0 w-full z-10">
                 <div className=" hidden sm:block md:flex items-center gap-2">
@@ -94,37 +140,132 @@ export default function Home() {
                 </div>
 
                 <div className="flex gap-2 mr-4 ml-4 lg:gap-4">
-                    <img src="../images/location.png" className="w-7 cursor-pointer" />
-                    <img src="../images/mike.png" className="w-7 cursor-pointer" />
-                    <Avatar style={{ width: "30px", height: "30px", cursor: 'pointer' }}></Avatar>
+                    {/* drop down post menu */}
+
+                    <div className="relative inline-block text-left justify-center items-center ">
+                        <button onClick={() => togglePost()}>
+                            <AddCircleOutlineIcon fontSize="large" className=" cursor-pointer " />
+                        </button>
+                        {isPostOpen && (
+                            <div ref={wrapperRef} className="absolute right-0 z-10 mt-2 w-56 origin-top-right divide-y divide-gray-100 rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none" role="menu" aria-orientation="vertical" aria-labelledby="menu-button" >
+                                <div className="py-2 px-3 flex flex-row justify-start items-center" role="none">
+                                    {/* <!-- Active: "bg-gray-100 text-gray-900 outline-none", Not Active: "text-gray-700" --> */}
+                                    <PostAddOutlinedIcon fontSize="medium" className="font-medium h-8" />
+                                    <a href="#" className="block px-4 py-2 text-sm text-gray-700" role="menuitem" id="menu-item-2">Create Post</a>
+                                </div>
+                                <div className="py-2 px-3 flex flex-row justify-start items-center" role="none">
+                                    {/* <!-- Active: "bg-gray-100 text-gray-900 outline-none", Not Active: "text-gray-700" --> */}
+                                    <HowToVoteOutlined fontSize="medium" className="w-8 h-8" />
+                                    <a href="#" className="block px-4 py-2 text-sm text-gray-700" role="menuitem" id="menu-item-2">Create Voting Poll</a>
+                                </div>
+                                <div className="py-2 px-3 flex flex-row justify-start items-center" role="none">
+                                    {/* <!-- Active: "bg-gray-100 text-gray-900 outline-none", Not Active: "text-gray-700" --> */}
+                                    <MicNoneOutlinedIcon fontSize="medium" className="w-8 h-8" />
+                                    <a href="#" className="block px-4 py-2 text-sm text-gray-700" role="menuitem" id="menu-item-2">Send Voice Recording</a>
+                                </div>
+
+                            </div>
+                        )}
+                    </div>
+
+
+                    {/* Menu drop down on avatar click */}
+                    <div className="relative inline-block text-left ">
+                        <button onClick={() => toggleMenu()}>
+                            <Avatar style={{ width: "35px", height: "35px", cursor: 'pointer' }}></Avatar>
+                        </button>
+                        {isMenuOpen && (<div ref={wrapperRef} className="absolute right-0 z-10 mt-2 w-56 origin-top-right divide-y divide-gray-100 rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none" role="menu" aria-orientation="vertical" aria-labelledby="menu-button" >
+                            <div className="py-1" role="none">
+                                {/* <!-- Active: "bg-gray-100 text-gray-900 outline-none", Not Active: "text-gray-700" --> */}
+                                <a href="#" className="block px-4 py-2 text-sm text-gray-700" role="menuitem" id="menu-item-0">Home</a>
+                                <a href="#" className="block px-4 py-2 text-sm text-gray-700" role="menuitem" id="menu-item-1">Notifications</a>
+                                <a href="#" className="block px-4 py-2 text-sm text-gray-700" role="menuitem" id="menu-item-2">Marketplace</a>
+                                <a href="#" className="block px-4 py-2 text-sm text-gray-700" role="menuitem" id="menu-item-3">Favorites</a>
+                            </div>
+                            <div className="py-1" role="none">
+
+                            </div>
+                            <div className="py-1" role="none">
+                                <a href="#" className="block px-4 py-2 text-sm text-gray-700" role="menuitem" id="menu-item-4">Settings</a>
+                                <a href="#" className="block px-4 py-2 text-sm text-gray-700" role="menuitem" id="menu-item-5">My Profile</a>
+                                <a href="#" className="block px-4 py-2 text-sm text-gray-700" role="menuitem" id="menu-item-5">Verify by Student ID</a>
+                                <a href="#" className="block px-4 py-2 text-sm text-gray-700" role="menuitem" id="menu-item-6">Log Out</a>
+
+                            </div>
+                            <div className="py-1" role="none">
+                            </div>
+                        </div>)}
+                    </div>
+
                 </div>
+
+
             </div>
             {/* https://youtu.be/PjaiWsNRHxE - link to first video post */}
             {/* main div to hold posts and settings */}
-            <div className="flex flex-col gap-5 mt-0 overflow-y-scroll h-auto pt-20 pb-5" style={{ backgroundColor: "#f5f5f5" }}>
-                {posts.map((post, index) => (
-                    <Post
-                        key={index}
-                        username={post.username}
-                        // postImage={post.postImage}
-                        postImage="https://youtube.com/embed/y-m3yjJTGa0"
-                        avatar={post.avatar}
-                        courseId={post.courseId}
-                        bookmarked={post.bookmarked}
-                        course={post.course}
-                        timestamp="Now"
-                        description="Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum."
-                        isImage={false}
-                        isVideo={false}
-                        isYoutubeUrl={false}
-                        isTextOnly={false}
-                        isMapUrl={false}
-                        isAudioUrl={true}
-                        audioUrl="http://codeskulptor-demos.commondatastorage.googleapis.com/pang/paza-moduless.mp3"
-                    />
-                ))}
+            <div className="mt-20 mx-auto flex justify-center max-w-7xl gap-10">
+                {/* Left Notifications */}
+                <div className="hidden sm:flow-root sticky top-20 h-96  xl:max-h-max p-4 max-w-md  bg-white rounded-lg border shadow-md mt-0">
+                    <div className="flex justify-between items-start mb-4 min-w-72">
+                        <h3 className="text-xl font-normal leading-none text-gray-900 ">Latest Notifications</h3>
+                        <a href="#" className="text-sm font-medium text-blue-600 hover:underline dark:text-blue-500">View all</a>
+                    </div>
+                    <div className="flex flex-col h-72 overflow-y-auto min-w-max gap-5 p-2">
+                        <ToastNotification imageUrl="https://cdn.theconversation.com/avatars/1286529/width238/Person_Hannibal_001.jpg" name="Banny" message="Lorem Ipsum is simply dummy text of the printing and typesetting industry. " timestamp="yesterday" />
+                        <ToastNotification
+                            imageUrl="https://flowbite.com/docs/images/people/profile-picture-4.jpg"
+                            name="Bonnie Green"
+                            message="commented on your photo recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum"
+                            timestamp="a few seconds ago"
+                            onClose={() => console.log('Toast closed')}
+                        />
+                        <p className="font-normal text-center text-3xl mt-20 text-gray-400">No notifications</p>
+                    </div>
+                </div>
 
+                {/* Posts Area - Scrollable */}
+                <div className="flex flex-col mx-4 overflow-y-scroll h-auto justify-center items-center bg-chukaLiveLight gap-5">
+                    <PollBox avatar="https://img.freepik.com/free-photo/beautiful-african-american-woman-cafe_273609-5355.jpg?semt=ais_hybrid" username="Amulavu Clo" question={question} answers={answers} course="Elcectircal Engineering" />
+                    {posts.map((post, index) => (
+                        <Post
+                            key={index}
+                            username={post.username}
+                            // postImage={post.postImage}
+                            postImage="https://youtube.com/embed/y-m3yjJTGa0"
+                            avatar={post.avatar}
+                            courseId={post.courseId}
+                            bookmarked={post.bookmarked}
+                            course={post.course}
+                            timestamp="Now"
+                            description="Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum"
+                            isImage={false}
+                            isVideo={false}
+                            isYoutubeUrl={false}
+                            isTextOnly={false}
+                            isMapUrl={false}
+                            isAudioUrl={true}
+                            audioUrl="http://codeskulptor-demos.commondatastorage.googleapis.com/pang/paza-moduless.mp3"
+                        // dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum.
+                        />
+                    ))}
+
+                </div>
+
+                {/* Right Favotires pin tab */}
+                <div className="hidden lg:block sticky top-20 max-h-96 p-4 max-w-md bg-white rounded-lg text-white mt-0">
+                <div className="flex justify-between items-start mb-4 min-w-72">
+                        <h3 className="text-xl font-normal leading-none text-gray-900 ">Latest Notifications</h3>
+                        <a href="#" className="text-sm font-medium text-blue-600 hover:underline dark:text-blue-500">View all</a>
+                    </div>
+                    <div className="flex flex-col h-72 overflow-y-auto min-w-max gap-5 p-2">
+                        <BookmarkedPostItem imageUrl="https://flowbite.com/docs/images/people/profile-picture-4.jpg" name="Paul Kate" faculty="Engineering" description="Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum" />
+                        <BookmarkedPostItem imageUrl="https://flowbite.com/docs/images/people/profile-picture-4.jpg" name="Paul Kate" faculty="Engineering" description="Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum" />
+                    </div>
+
+                </div>
             </div>
+
+
         </div>
     )
 }
